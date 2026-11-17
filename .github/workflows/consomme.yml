@@ -1,0 +1,35 @@
+name: consomme
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
+jobs:
+  reutilisable:
+    uses: elyasbenyssad-somtech/banc-source/.github/workflows/reutilisable.yml@main
+  dependances:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Sous-module present
+        run: test -f banc-source/README.md && echo "SOUS-MODULE ok" || echo "SOUS-MODULE ECHEC"
+      - name: git ls-remote sur l'ancienne adresse
+        run: git ls-remote https://github.com/elyasbenyssad-somtech/banc-source.git HEAD && echo "LS-REMOTE ok" || echo "LS-REMOTE ECHEC"
+      - name: Dependance git npm
+        run: npm install --no-audit --no-fund && echo "DEP-GIT ok" || echo "DEP-GIT ECHEC"
+      - name: Image sous l'ancien nom
+        run: |
+          for img in elyasbenyssad-somtech/banc-image somtech-bac-a-sable/banc-image; do
+            T=$(curl -s "https://ghcr.io/token?scope=repository:${img}:pull" | jq -r '.token // empty')
+            c=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $T" -H 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json' "https://ghcr.io/v2/${img}/manifests/latest")
+            echo "IMAGE ${img} HTTP ${c}"
+          done
+      - name: Paquet npm sous l'ancienne portee
+        run: |
+          echo "@elyasbenyssad-somtech:registry=https://npm.pkg.github.com" > .npmrc
+          echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> .npmrc
+          npm view @elyasbenyssad-somtech/banc-paquet version && echo "NPM-ANCIEN ok" || echo "NPM-ANCIEN ECHEC"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

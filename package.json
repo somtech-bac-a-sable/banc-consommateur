@@ -1,0 +1,8 @@
+{
+  "name": "banc-consommateur",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "banc-source-git": "github:elyasbenyssad-somtech/banc-source"
+  }
+}
