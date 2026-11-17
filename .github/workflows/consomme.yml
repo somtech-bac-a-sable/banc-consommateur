@@ -6,7 +6,7 @@ permissions:
   packages: read
 jobs:
   reutilisable:
-    uses: elyasbenyssad-somtech/banc-source/.github/workflows/reutilisable.yml@main
+    uses: somtech-bac-a-sable/banc-source/.github/workflows/reutilisable.yml@main
   dependances:
     runs-on: ubuntu-latest
     steps:

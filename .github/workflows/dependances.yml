@@ -31,3 +31,7 @@ jobs:
           npm view @elyasbenyssad-somtech/banc-paquet version && echo "NPM-ANCIEN ok" || echo "NPM-ANCIEN ECHEC"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pages a l'ancienne adresse
+        run: |
+          c=$(curl -s -o /dev/null -w '%{http_code}' "https://elyasbenyssad-somtech.github.io/banc-source/index.html?t=$(date +%s)")
+          echo "PAGES-ANCIEN HTTP ${c}"

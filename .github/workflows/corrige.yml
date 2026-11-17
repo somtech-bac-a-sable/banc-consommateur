@@ -1,0 +1,29 @@
+name: corrige
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
+jobs:
+  nouvelles-references:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pages a la nouvelle adresse
+        run: |
+          c=$(curl -s -o /dev/null -w '%{http_code}' "https://somtech-bac-a-sable.github.io/banc-source/index.html?t=$(date +%s)")
+          echo "PAGES-NOUVEAU HTTP ${c}"
+      - name: Image sous le nouveau nom, anonyme puis avec le jeton du depot
+        run: |
+          img=somtech-bac-a-sable/banc-image
+          T=$(curl -s "https://ghcr.io/token?scope=repository:${img}:pull" | jq -r '.token // empty')
+          c=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $T" -H 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json' "https://ghcr.io/v2/${img}/manifests/latest")
+          echo "IMAGE-NOUVEAU anonyme HTTP ${c}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin >/dev/null 2>&1
+          docker pull -q "ghcr.io/${img}:latest" >/dev/null 2>&1 && echo "IMAGE-NOUVEAU jeton ok" || echo "IMAGE-NOUVEAU jeton ECHEC"
+      - name: Paquet npm sous la nouvelle portee
+        run: |
+          echo "@somtech-bac-a-sable:registry=https://npm.pkg.github.com" > .npmrc
+          echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> .npmrc
+          npm view @somtech-bac-a-sable/banc-paquet version && echo "NPM-NOUVEAU ok" || echo "NPM-NOUVEAU ECHEC"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
